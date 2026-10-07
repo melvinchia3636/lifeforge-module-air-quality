@@ -174,6 +174,33 @@ export const contract = {
         "additionalProperties": false
       }
     }
+  },
+  "image": {
+    "method": "get",
+    "description": "Generate a 384px-wide black and white image of a station detail",
+    "noAuth": true,
+    "encrypted": false,
+    "isDownloadable": true,
+    "media": null,
+    "input": {
+      "query": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "idx": {
+            "type": "string"
+          },
+          "t": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "idx"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "output": "custom"
   }
 } as const
 

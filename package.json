@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "leaflet": "^1.9.4",
+    "puppeteer-core": "^24.23.0",
     "recharts": "^2.15.0"
   },
   "devDependencies": {

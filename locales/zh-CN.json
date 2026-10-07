@@ -2,6 +2,7 @@
   "title": "空气质量",
   "description": "全球各地的实时空气质量监测站。",
   "buttons": {
+    "downloadImage": "下载图片",
     "retry": "重试"
   },
   "items": {

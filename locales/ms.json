@@ -2,6 +2,7 @@
   "title": "Kualiti Udara",
   "description": "Stesen pemantauan kualiti udara secara langsung di seluruh dunia.",
   "buttons": {
+    "downloadImage": "Muat Turun Gambar",
     "retry": "Cuba Lagi"
   },
   "items": {

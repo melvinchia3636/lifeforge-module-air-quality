@@ -2,6 +2,7 @@
   "title": "Air Quality",
   "description": "Live air quality monitoring stations around the world.",
   "buttons": {
+    "downloadImage": "Download Image",
     "retry": "Retry"
   },
   "items": {

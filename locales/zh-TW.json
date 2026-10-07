@@ -2,6 +2,7 @@
   "title": "空氣品質",
   "description": "全球各地的即時空氣品質監測站。",
   "buttons": {
+    "downloadImage": "下載圖片",
     "retry": "重試"
   },
   "items": {

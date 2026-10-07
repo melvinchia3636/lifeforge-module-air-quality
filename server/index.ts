@@ -1,8 +1,10 @@
+import puppeteer from 'puppeteer-core'
 import z from 'zod'
 
 import { forgeRouter, writeContractFileToClient } from '@lifeforge/server-utils'
 
 import forge from './forge'
+import { generateStationImageHTML } from './utils/generateStationImageHTML'
 import { httpsJson } from './utils/http'
 import {
   type Api2Series,
@@ -22,7 +24,7 @@ const BROWSER_HEADERS: Record<string, string> = {
   'Cache-Control': 'no-cache',
   Origin: 'https://aqicn.org',
   Pragma: 'no-cache',
-  'Priority': 'u=4',
+  Priority: 'u=4',
   Referer: 'https://aqicn.org/',
   'Sec-Fetch-Dest': 'empty',
   'Sec-Fetch-Mode': 'cors',
@@ -48,6 +50,7 @@ interface Api2FeedResponse {
         | {
             aqi?: number
             dominentpol?: string
+            city?: { name?: string }
             time?: { iso?: string; tz?: string }
             iaqi?: Record<string, { v: number } | undefined>
             obs?: Record<string, Api2Series | undefined>
@@ -97,11 +100,21 @@ const detailOutput = z.object({
   )
 })
 
-type StationDetail = z.infer<typeof detailOutput>
+interface StationDetailData {
+  name: string
+  aqi: number | null
+  start: number
+  step: number
+  current: { key: string; value: number }[]
+  series: { key: string; values: (number | null)[] }[]
+}
 
 const tokenCache = new Map<string, { token: string; expires: number }>()
 
-const detailCache = new Map<string, { data: StationDetail; expires: number }>()
+const detailCache = new Map<
+  string,
+  { data: StationDetailData; expires: number }
+>()
 
 async function getApi2Token(id: string) {
   const cached = tokenCache.get(id)
@@ -147,7 +160,9 @@ async function getAirnetKey() {
   return json.key
 }
 
-async function buildAirnetDetail(idx: string): Promise<StationDetail | null> {
+async function buildAirnetDetail(
+  idx: string
+): Promise<StationDetailData | null> {
   const key = await getAirnetKey()
 
   const id = encodeURIComponent(idx.slice(1))
@@ -232,7 +247,9 @@ async function buildAirnetDetail(idx: string): Promise<StationDetail | null> {
 
   const aligned = alignSeries(seriesMap, 72, 3600)
 
-  const byKey = new Map(aligned.series.map(series => [series.key, series.values]))
+  const byKey = new Map(
+    aligned.series.map(series => [series.key, series.values])
+  )
 
   const pm25Values = byKey.get('pm25') ?? []
 
@@ -297,7 +314,8 @@ async function buildAirnetDetail(idx: string): Promise<StationDetail | null> {
   }
 
   return {
-    idx,
+    name: hourly.meta?.name ?? '',
+    aqi: aqi > 0 ? aqi : null,
     start: aligned.start,
     step: aligned.step,
     current,
@@ -360,6 +378,89 @@ const getStations = forge
     return response.ok(stations)
   })
 
+async function resolveStationDetail(
+  idx: string
+): Promise<StationDetailData | null> {
+  const cached = detailCache.get(idx)
+
+  if (cached && cached.expires > Date.now()) {
+    return cached.data
+  }
+
+  let result: StationDetailData | null = null
+
+  if (idx.startsWith('A')) {
+    result = await buildAirnetDetail(idx)
+  } else {
+    const token = await getApi2Token(idx)
+
+    const body = new URLSearchParams({ token, id: idx }).toString()
+
+    const json = await httpsJson<Api2FeedResponse>(
+      `https://api2.waqi.info/api/feed/@${encodeURIComponent(idx)}/aqi.json`,
+      { method: 'POST', headers: FORM_HEADERS, body }
+    )
+
+    const entry = json.rxs?.obs?.find(item => typeof item.msg === 'object')
+
+    const msg = typeof entry?.msg === 'object' ? entry.msg : undefined
+
+    if (msg?.iaqi && msg.obs) {
+      const tz = msg.time?.tz ?? '+00:00'
+
+      const decoded = Object.entries(msg.obs).flatMap(([key, series]) =>
+        series ? [{ key, points: decodeApi2Series(series, tz) }] : []
+      )
+
+      const aligned = alignSeries(decoded, 72, 3600)
+
+      const current = Object.entries(msg.iaqi).flatMap(([key, value]) =>
+        value ? [{ key, value: value.v }] : []
+      )
+
+      const aqi = typeof msg.aqi === 'number' ? msg.aqi : null
+
+      if (aqi !== null && !current.some(item => item.key === 'aqi')) {
+        current.unshift({ key: 'aqi', value: aqi })
+      }
+
+      let series = aligned.series
+
+      if (!series.some(item => item.key === 'aqi')) {
+        const subIndexKeys = ['pm25', 'pm10', 'o3', 'no2', 'so2', 'co']
+
+        const subSeries = series.filter(item => subIndexKeys.includes(item.key))
+
+        if (subSeries.length > 0) {
+          const aqiValues = subSeries[0].values.map((_, index) =>
+            Math.max(...subSeries.map(item => item.values[index] ?? 0))
+          )
+
+          series = [{ key: 'aqi', values: aqiValues }, ...series]
+        }
+      }
+
+      result = {
+        name: msg.city?.name ?? '',
+        aqi,
+        start: aligned.start,
+        step: aligned.step,
+        current,
+        series
+      }
+    }
+  }
+
+  if (result) {
+    detailCache.set(idx, {
+      data: result,
+      expires: Date.now() + DETAIL_CACHE_TTL
+    })
+  }
+
+  return result
+}
+
 const getStationDetail = forge
   .query({
     description: 'Get detailed air quality data for a single station',
@@ -371,87 +472,100 @@ const getStationDetail = forge
     }
   })
   .callback(async ({ query: { idx }, response }) => {
-    const cached = detailCache.get(idx)
-
-    if (cached && cached.expires > Date.now()) {
-      return response.ok(cached.data)
-    }
-
-    if (idx.startsWith('A')) {
-      let airnetResult: StationDetail | null
-
-      try {
-        airnetResult = await buildAirnetDetail(idx)
-      } catch {
-        return response.badRequest('Failed to fetch station data')
-      }
-
-      if (!airnetResult) {
-        return response.badRequest('No data available for this station')
-      }
-
-      detailCache.set(idx, {
-        data: airnetResult,
-        expires: Date.now() + DETAIL_CACHE_TTL
-      })
-
-      return response.ok(airnetResult)
-    }
-
-    let json: Api2FeedResponse
+    let data: StationDetailData | null
 
     try {
-      const token = await getApi2Token(idx)
-
-      const body = new URLSearchParams({ token, id: idx }).toString()
-
-      json = await httpsJson<Api2FeedResponse>(
-        `https://api2.waqi.info/api/feed/@${encodeURIComponent(idx)}/aqi.json`,
-        { method: 'POST', headers: FORM_HEADERS, body }
-      )
+      data = await resolveStationDetail(idx)
     } catch {
       return response.badRequest('Failed to fetch station data')
     }
 
-    const entry = json.rxs?.obs?.find(item => typeof item.msg === 'object')
-
-    const msg = typeof entry?.msg === 'object' ? entry.msg : undefined
-
-    if (!msg?.iaqi || !msg.obs) {
+    if (!data) {
       return response.badRequest('No data available for this station')
     }
 
-    const tz = msg.time?.tz ?? '+00:00'
-
-    const decoded = Object.entries(msg.obs).flatMap(([key, series]) =>
-      series ? [{ key, points: decodeApi2Series(series, tz) }] : []
-    )
-
-    const aligned = alignSeries(decoded, 72, 3600)
-
-    const current = Object.entries(msg.iaqi).flatMap(([key, value]) =>
-      value ? [{ key, value: value.v }] : []
-    )
-
-    const result: StationDetail = {
+    return response.ok({
       idx,
-      start: aligned.start,
-      step: aligned.step,
-      current,
-      series: aligned.series
+      start: data.start,
+      step: data.step,
+      current: data.current,
+      series: data.series
+    })
+  })
+
+const image = forge
+  .query({
+    encrypted: false,
+    isDownloadable: true,
+    noAuth: true,
+    description:
+      'Generate a 384px-wide black and white image of a station detail',
+    input: {
+      query: z.object({ idx: z.string(), t: z.string().optional() })
+    },
+    output: 'custom'
+  })
+  .callback(async ({ query: { idx }, res }) => {
+    let data: StationDetailData | null
+
+    try {
+      data = await resolveStationDetail(idx)
+    } catch {
+      res.status(400).end()
+
+      return
     }
 
-    detailCache.set(idx, {
-      data: result,
-      expires: Date.now() + DETAIL_CACHE_TTL
+    if (!data) {
+      res.status(404).end()
+
+      return
+    }
+
+    const browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     })
 
-    return response.ok(result)
+    const page = await browser.newPage()
+
+    await page.setViewport({
+      width: 384,
+      height: 800,
+      deviceScaleFactor: 2
+    })
+    await page.setContent(generateStationImageHTML(data))
+    await page.evaluate(async () => {
+      await document.fonts.ready
+
+      if (typeof customElements !== 'undefined') {
+        await customElements.whenDefined('iconify-icon').catch(() => {})
+      }
+      await new Promise(resolve => setTimeout(resolve, 600))
+    })
+
+    const imageBuffer = await page.screenshot({
+      type: 'png',
+      fullPage: true
+    })
+
+    await browser.close()
+
+    const buffer = Buffer.isBuffer(imageBuffer)
+      ? imageBuffer
+      : Buffer.from(imageBuffer)
+
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.set('Content-Type', 'image/png')
+    res.set('x-lifeforge-downloadable', 'true')
+    res.status(200).end(buffer)
   })
 
 const routes = forgeRouter({
   getStations,
-  getStationDetail
+  getStationDetail,
+  image
 })
 
 writeContractFileToClient(routes, import.meta.dirname)
