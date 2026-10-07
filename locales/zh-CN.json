@@ -1,0 +1,29 @@
+{
+  "title": "空气质量",
+  "description": "全球各地的实时空气质量监测站。",
+  "buttons": {
+    "retry": "重试"
+  },
+  "items": {
+    "aqi": "空气质量指数"
+  },
+  "modals": {
+    "stationDetails": "监测站详情"
+  },
+  "time": {
+    "updated": "更新于 {{time}}"
+  },
+  "aqi": {
+    "good": "良好",
+    "moderate": "中等",
+    "unhealthySensitive": "对敏感人群不健康",
+    "unhealthy": "不健康",
+    "veryUnhealthy": "非常不健康",
+    "hazardous": "危险",
+    "unknown": "未知"
+  },
+  "location": {
+    "unsupported": "您的浏览器不支持地理定位。",
+    "denied": "无法获取您的位置。请允许位置访问。"
+  }
+}

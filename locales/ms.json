@@ -1,0 +1,29 @@
+{
+  "title": "Kualiti Udara",
+  "description": "Stesen pemantauan kualiti udara secara langsung di seluruh dunia.",
+  "buttons": {
+    "retry": "Cuba Lagi"
+  },
+  "items": {
+    "aqi": "AQI"
+  },
+  "modals": {
+    "stationDetails": "Butiran Stesen"
+  },
+  "time": {
+    "updated": "dikemas kini {{time}}"
+  },
+  "aqi": {
+    "good": "Baik",
+    "moderate": "Sederhana",
+    "unhealthySensitive": "Tidak Sihat untuk Kumpulan Sensitif",
+    "unhealthy": "Tidak Sihat",
+    "veryUnhealthy": "Sangat Tidak Sihat",
+    "hazardous": "Berbahaya",
+    "unknown": "Tidak Diketahui"
+  },
+  "location": {
+    "unsupported": "Geolokasi tidak disokong oleh pelayar anda.",
+    "denied": "Tidak dapat menentukan lokasi anda. Sila benarkan akses lokasi."
+  }
+}

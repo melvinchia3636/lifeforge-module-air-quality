@@ -1,0 +1,29 @@
+{
+  "title": "Air Quality",
+  "description": "Live air quality monitoring stations around the world.",
+  "buttons": {
+    "retry": "Retry"
+  },
+  "items": {
+    "aqi": "AQI"
+  },
+  "modals": {
+    "stationDetails": "Station Details"
+  },
+  "time": {
+    "updated": "updated {{time}}"
+  },
+  "aqi": {
+    "good": "Good",
+    "moderate": "Moderate",
+    "unhealthySensitive": "Unhealthy for Sensitive Groups",
+    "unhealthy": "Unhealthy",
+    "veryUnhealthy": "Very Unhealthy",
+    "hazardous": "Hazardous",
+    "unknown": "Unknown"
+  },
+  "location": {
+    "unsupported": "Geolocation is not supported by your browser.",
+    "denied": "Unable to get your location. Please allow location access."
+  }
+}

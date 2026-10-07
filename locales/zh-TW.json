@@ -1,0 +1,29 @@
+{
+  "title": "空氣品質",
+  "description": "全球各地的即時空氣品質監測站。",
+  "buttons": {
+    "retry": "重試"
+  },
+  "items": {
+    "aqi": "空氣品質指數"
+  },
+  "modals": {
+    "stationDetails": "監測站詳情"
+  },
+  "time": {
+    "updated": "更新於 {{time}}"
+  },
+  "aqi": {
+    "good": "良好",
+    "moderate": "中等",
+    "unhealthySensitive": "對敏感族群不健康",
+    "unhealthy": "不健康",
+    "veryUnhealthy": "非常不健康",
+    "hazardous": "危險",
+    "unknown": "未知"
+  },
+  "location": {
+    "unsupported": "您的瀏覽器不支援地理定位。",
+    "denied": "無法取得您的位置。請允許位置存取。"
+  }
+}
