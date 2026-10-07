@@ -2,6 +2,7 @@
   "title": "空氣品質",
   "description": "全球各地的即時空氣品質監測站。",
   "buttons": {
+    "displayInWidget": "顯示在小工具",
     "downloadImage": "下載圖片",
     "retry": "重試"
   },
@@ -10,6 +11,22 @@
   },
   "modals": {
     "stationDetails": "監測站詳情"
+  },
+  "widgets": {
+    "airQuality": {
+      "title": "空氣品質",
+      "description": "顯示所選站點的空氣品質。",
+      "empty": {
+        "station": {
+          "title": "未選擇站點",
+          "description": "打開地圖，點擊站點，然後選擇「顯示在小工具」。"
+        }
+      }
+    }
+  },
+  "toast": {
+    "displayedInWidget": "站點已顯示在小工具中",
+    "imageFailed": "產生站點圖片失敗"
   },
   "time": {
     "updated": "更新於 {{time}}"

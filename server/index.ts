@@ -4,6 +4,7 @@ import z from 'zod'
 import { forgeRouter, writeContractFileToClient } from '@lifeforge/server-utils'
 
 import forge from './forge'
+import * as selectionRoutes from './routes/selection'
 import { generateStationImageHTML } from './utils/generateStationImageHTML'
 import { httpsJson } from './utils/http'
 import {
@@ -565,7 +566,8 @@ const image = forge
 const routes = forgeRouter({
   getStations,
   getStationDetail,
-  image
+  image,
+  selection: selectionRoutes
 })
 
 writeContractFileToClient(routes, import.meta.dirname)

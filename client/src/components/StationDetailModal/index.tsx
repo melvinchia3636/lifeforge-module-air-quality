@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import type { InferOutput } from '@lifeforge/api'
+import { useForgeMutation } from '@lifeforge/api'
+import { useModuleTranslation } from '@lifeforge/localization'
 import {
   Box,
   ContextMenu,
@@ -26,6 +28,7 @@ function StationDetailModal({
   onClose: () => void
   data: Station
 }) {
+  const { t } = useModuleTranslation()
   const [downloading, setDownloading] = useState(false)
 
   const detailQuery = useQuery(
@@ -34,6 +37,18 @@ function StationDetailModal({
       staleTime: 1000 * 60 * 5
     })
   )
+
+  const setStationMutation = useForgeMutation(forgeAPI.selection.set, {
+    action: 'update',
+    queryKey: forgeAPI.selection.key,
+    onSuccess: () => {
+      toast.success(t('toast.displayedInWidget'))
+    }
+  })
+
+  const selectionQuery = useQuery(forgeAPI.selection.get.queryOptions())
+
+  const isSelected = selectionQuery.data?.station?.station_id === station.id
 
   async function handleDownloadImage() {
     setDownloading(true)
@@ -58,7 +73,7 @@ function StationDetailModal({
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
     } catch {
-      toast.error('Failed to generate station image')
+      toast.error(t('toast.imageFailed'))
     } finally {
       setDownloading(false)
     }
@@ -78,6 +93,21 @@ function StationDetailModal({
               loading={downloading}
               shouldCloseMenuOnClick={false}
               onClick={handleDownloadImage}
+            />
+            <ContextMenuItem
+              disabled={isSelected}
+              icon="tabler:layout-dashboard"
+              label="displayInWidget"
+              loading={setStationMutation.isPending}
+              shouldCloseMenuOnClick={false}
+              onClick={() => {
+                setStationMutation.mutate({
+                  stationId: station.id,
+                  name: station.name,
+                  lat: station.lat,
+                  lng: station.lng
+                })
+              }}
             />
           </ContextMenu>
         }

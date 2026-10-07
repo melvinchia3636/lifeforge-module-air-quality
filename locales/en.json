@@ -2,6 +2,7 @@
   "title": "Air Quality",
   "description": "Live air quality monitoring stations around the world.",
   "buttons": {
+    "displayInWidget": "Display in Widget",
     "downloadImage": "Download Image",
     "retry": "Retry"
   },
@@ -10,6 +11,22 @@
   },
   "modals": {
     "stationDetails": "Station Details"
+  },
+  "widgets": {
+    "airQuality": {
+      "title": "Air Quality",
+      "description": "Display the air quality of a selected station.",
+      "empty": {
+        "station": {
+          "title": "No Station Selected",
+          "description": "Open the map, click a station, then choose \"Display in Widget\"."
+        }
+      }
+    }
+  },
+  "toast": {
+    "displayedInWidget": "Station displayed in widget",
+    "imageFailed": "Failed to generate station image"
   },
   "time": {
     "updated": "updated {{time}}"

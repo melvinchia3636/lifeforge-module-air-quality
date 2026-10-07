@@ -1,5 +1,7 @@
 import { createForge } from '@lifeforge/server-utils'
 
-const forge = createForge({})
+import * as schema from './schema.drizzle'
+
+const forge = createForge({ schema })
 
 export default forge

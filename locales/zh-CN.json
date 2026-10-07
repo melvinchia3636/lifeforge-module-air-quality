@@ -2,6 +2,7 @@
   "title": "空气质量",
   "description": "全球各地的实时空气质量监测站。",
   "buttons": {
+    "displayInWidget": "显示在小部件",
     "downloadImage": "下载图片",
     "retry": "重试"
   },
@@ -10,6 +11,22 @@
   },
   "modals": {
     "stationDetails": "监测站详情"
+  },
+  "widgets": {
+    "airQuality": {
+      "title": "空气质量",
+      "description": "显示所选站点的空气质量。",
+      "empty": {
+        "station": {
+          "title": "未选择站点",
+          "description": "打开地图，点击站点，然后选择“显示在小部件”。"
+        }
+      }
+    }
+  },
+  "toast": {
+    "displayedInWidget": "站点已显示在小部件中",
+    "imageFailed": "生成站点图片失败"
   },
   "time": {
     "updated": "更新于 {{time}}"

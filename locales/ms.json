@@ -2,6 +2,7 @@
   "title": "Kualiti Udara",
   "description": "Stesen pemantauan kualiti udara secara langsung di seluruh dunia.",
   "buttons": {
+    "displayInWidget": "Paparkan dalam Widget",
     "downloadImage": "Muat Turun Gambar",
     "retry": "Cuba Lagi"
   },
@@ -10,6 +11,22 @@
   },
   "modals": {
     "stationDetails": "Butiran Stesen"
+  },
+  "widgets": {
+    "airQuality": {
+      "title": "Kualiti Udara",
+      "description": "Paparkan kualiti udara stesen yang dipilih.",
+      "empty": {
+        "station": {
+          "title": "Tiada Stesen Dipilih",
+          "description": "Buka peta, klik stesen, kemudian pilih \"Paparkan dalam Widget\"."
+        }
+      }
+    }
+  },
+  "toast": {
+    "displayedInWidget": "Stesen dipaparkan dalam widget",
+    "imageFailed": "Gagal menjana imej stesen"
   },
   "time": {
     "updated": "dikemas kini {{time}}"
